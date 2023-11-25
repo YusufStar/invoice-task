@@ -59,29 +59,29 @@ const Admin = () => {
 
   function drawEmptySquare(canvas, x, y, width, height, color) {
     const context = canvas.getContext('2d');
-    
+
     context.strokeStyle = color || '#000';
     context.strokeRect(x, y, width, height);
   }
 
   useEffect(() => {
-    if(canvasRef.current) {
+    if (canvasRef.current) {
       const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
+      const context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (fileUrl) {
-      const img = new Image();
-      img.src = fileUrl;
-      img.onload = () => {
-        context.drawImage(img, 0, 0, canvas.width, canvas.height);
-        Object.entries(data.coordinates).forEach(([key, value]) => {
-          if (value) {
-            drawEmptySquare(canvas, value.x, value.y, 32, 12, "#ce3fad");
-          }
-        });
-      };
-    }
+      if (fileUrl) {
+        const img = new Image();
+        img.src = fileUrl;
+        img.onload = () => {
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          Object.entries(data.coordinates).forEach(([key, value]) => {
+            if (value) {
+              drawEmptySquare(canvas, value.x, value.y, 32, 12, "#ce3fad");
+            }
+          });
+        };
+      }
     }
   }, [data.coordinates])
 
@@ -148,7 +148,7 @@ const Admin = () => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     context.fillStyle = "#000";
-    context.font = "14px Arial";
+    context.font = "12px Arial";
     context.fillText(text, x, y);
   };
 
@@ -173,10 +173,20 @@ const Admin = () => {
 
         {fileUrl && <form onSubmit={(e) => {
           e.preventDefault();
-          clearCanvas()
-          Object.entries(data.inputs).forEach(([inputKey, inputValue]) => {
-            drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y);
-          });
+          const canvas = canvasRef.current;
+          const context = canvas.getContext('2d');
+          context.clearRect(0, 0, canvas.width, canvas.height);
+
+          if (fileUrl) {
+            const img = new Image();
+            img.src = fileUrl;
+            img.onload = () => {
+              context.drawImage(img, 0, 0, canvas.width, canvas.height);
+              Object.entries(data.inputs).forEach(([inputKey, inputValue]) => {
+                drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y + 8);
+              });
+            };
+          }
         }} className="flex flex-col gap-4">
           {Object.entries(data.inputs).map(([key, value]) => {
             return (

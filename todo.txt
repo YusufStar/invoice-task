@@ -1,0 +1,10 @@
+
+Öncelikle belirtmeliyim ki, bu sistem özellikle yöneticilere uygundur.
+Normal kullanıcılar için planım şu şekildedir: Admin sisteminde bulunan x ve y koordinatları,
+MongoDB'ye template modeli üzerinden database'e yüklenecektir.
+Kullanıcı bir alışveriş gerçekleştirdiğinde, template'deki PDF veya görüntü,
+canvasa yazdırılacak ve template'in koordinatlarına göre yazılar yerleştirilecektir.
+Çıktıyı, admin tarafından yapıldığı şekilde oluşturacağım.
+
+Kullanıcılar, koordinatları değiştireme yetkisine sahip olmayacaklardır.
+URL'deki sorgular, koordinatların değerleri olarak kullanılacaktır.
