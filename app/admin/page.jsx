@@ -1,6 +1,7 @@
 'use client'
 import FileInput from '@/components/FileInput';
 import TextInput from '@/components/TextInput';
+import CoordinateIndicator from '@/components/CoordinateIndicator';
 import React, { useEffect, useRef, useState } from 'react'
 
 const Admin = () => {
@@ -21,6 +22,11 @@ const Admin = () => {
     width: 0,
     height: 0
   });
+  const [isCoordinateIndicatorVisible, setCoordinateIndicatorVisible] = useState(false);
+
+  const handleCoordinateButtonClick = () => {
+    setCoordinateIndicatorVisible(true);
+  };
 
   const handleImageUpload = (event) => {
     const input = event.target;
@@ -51,10 +57,39 @@ const Admin = () => {
     };
   }, [canvasRef, data, data.activeInput]);
 
+  function drawEmptySquare(canvas, x, y, width, height, color) {
+    const context = canvas.getContext('2d');
+    
+    context.strokeStyle = color || '#000';
+    context.strokeRect(x, y, width, height);
+  }
+
+  useEffect(() => {
+    if(canvasRef.current) {
+      const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (fileUrl) {
+      const img = new Image();
+      img.src = fileUrl;
+      img.onload = () => {
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        Object.entries(data.coordinates).forEach(([key, value]) => {
+          if (value) {
+            drawEmptySquare(canvas, value.x, value.y, 32, 12, "#ce3fad");
+          }
+        });
+      };
+    }
+    }
+  }, [data.coordinates])
+
   const handleCanvasClick = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left - 12;
+    const y = e.clientY - rect.top - 12;
+    setCoordinateIndicatorVisible(false)
 
     setData((prev) => ({
       ...prev,
@@ -128,15 +163,17 @@ const Admin = () => {
   };
 
   return (
-    <div className='flex flex-col items-center bg-gray-950 w-screen h-screen gap-4 p-12'>
+    <div className='flex flex-col items-center bg-gray-950 w-screen h-screen gap-4 p-12 relative'>
+      {isCoordinateIndicatorVisible && <CoordinateIndicator onClick={(position) => setData((prev) => ({ ...prev, coordinates: { ...prev.coordinates, [prev.activeInput]: position } }))} />}
       <span className='text-2xl font-semibold'>Draw text</span>
 
       <div className="w-full h-full flex gap-6 justify-center">
-        <canvas className='!w-[450px] !h-[636px] hover:cursor-crosshair' width={450} height={636} ref={canvasRef}>
+        <canvas className={`!w-[450px] !h-[636px] ${isCoordinateIndicatorVisible && "cursor-none"}`} width={450} height={636} ref={canvasRef}>
         </canvas>
 
         {fileUrl && <form onSubmit={(e) => {
           e.preventDefault();
+          clearCanvas()
           Object.entries(data.inputs).forEach(([inputKey, inputValue]) => {
             drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y);
           });
@@ -154,7 +191,10 @@ const Admin = () => {
                   title={`Set coordinat ${key}`}
                   type="button"
                   className='ml-4 px-2 py-2 bg-gray-300 text-black rounded-md transition-all duration-200 hover:opacity-75'
-                  onClick={() => setData((prev) => ({ ...prev, activeInput: key }))}
+                  onClick={() => {
+                    setData((prev) => ({ ...prev, activeInput: key }))
+                    handleCoordinateButtonClick()
+                  }}
                 >
                   <svg fill="#000000" width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><title /><path d="M21.31,52.45h-.17a2,2,0,0,1-1.82-2.16l2.87-34.72a2,2,0,1,1,4,.33L23.3,50.61A2,2,0,0,1,21.31,52.45Z" /><path d="M36.82,50.28l-.24,0A2,2,0,0,1,34.83,48l.33-2.71a2,2,0,1,1,4,.48l-.32,2.7A2,2,0,0,1,36.82,50.28Z" /><path d="M38,36.62h-.17A2,2,0,0,1,36,34.46L37.7,13.39a2,2,0,1,1,4,.33L39.94,34.79A2,2,0,0,1,38,36.62Z" /><path d="M46.78,27.68h-.17L11.89,24.8a2,2,0,0,1-1.83-2.16,2,2,0,0,1,2.16-1.82l34.72,2.87a2,2,0,0,1-.16,4Z" /><path d="M49,43.19h-.17L14.06,40.31a2,2,0,0,1-1.83-2.16,2,2,0,0,1,2.16-1.82L49.11,39.2a2,2,0,0,1-.16,4Z" /></svg>
                 </button>
