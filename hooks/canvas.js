@@ -58,41 +58,58 @@ const useCanvas = (canvasRef) => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     context.fillStyle = "#000";
-    context.font = "12px Arial";
-    context.fillText(text, x, y+3);
+    context.font = "bold 12px Arial";
+    context.fillText(text, x, y);
   };
 
-  // canvasa tıklanıldığında koordinatı al
-  const handleCanvasClick = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - 12;
-    const y = e.clientY - rect.top - 12;
-    setCoordinateIndicatorVisible(false)
-
-    if (data.activeInput) {
-      setData((prev) => ({
-        ...prev,
-        coordinates: {
-          ...prev.coordinates,
-          [prev.activeInput]: { x, y }
-        }
-      }));
-    }
-  };
-
-  // canvası dinle tıklanıldığında çalışacak fonksiyon!
-  useEffect(() => {
-    if (canvasRef.current) {
+  
+    const drawShape = (shape, options) => {
       const canvas = canvasRef.current;
-      canvas.addEventListener('click', handleCanvasClick);
-    }
+      const context = canvas.getContext('2d');
+    
+      context.beginPath();
+    
+      if (shape === 'square') {
+        context.rect(options.x, options.y, options.width, options.height);
+      } else if (shape === 'circle') {
+        context.arc(options.x, options.y, options.radius, 0, 2 * Math.PI);
+      }
+    
+      context.fillStyle = options.color || '#000';
+      context.fill();
+    };
 
-    return () => {
-      if (canvasRef.current) {
-        canvasRef.current.removeEventListener('click', handleCanvasClick);
+    // canvasa tıklanıldığında
+    const handleCanvasInteraction = (e) => {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left - 12;
+      const y = e.clientY - rect.top - 12;
+      setCoordinateIndicatorVisible(false);
+    
+      if (data.activeInput) {
+        setData((prev) => ({
+          ...prev,
+          coordinates: {
+            ...prev.coordinates,
+            [prev.activeInput]: { x, y },
+          },
+        }));
       }
     };
-  }, [canvasRef, data, data.activeInput]);
+    
+    // canvası
+    useEffect(() => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+        canvas.addEventListener('click', handleCanvasInteraction);
+      }
+    
+      return () => {
+        if (canvasRef.current) {
+          canvasRef.current.removeEventListener('click', handleCanvasInteraction);
+        }
+      };
+    }, [canvasRef, data, data.activeInput]);
 
   // canvası temizle tamamen!
   const clearData = () => {
@@ -146,7 +163,7 @@ const useCanvas = (canvasRef) => {
     document.body.removeChild(link);
   };
 
-  return { drawSquare, drawCircle, drawImage, drawText, data, setData, isCoordinateIndicatorVisible, setCoordinateIndicatorVisible, handleInputChange, clearData, handleDownload, resetCanvas };
+  return { drawSquare, drawCircle, drawText, drawShape, data, setData, isCoordinateIndicatorVisible, setCoordinateIndicatorVisible, handleInputChange, clearData, handleDownload, resetCanvas };
 };
 
 export default useCanvas;

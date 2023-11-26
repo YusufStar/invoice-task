@@ -5,6 +5,29 @@ import CoordinateIndicator from '@/components/CoordinateIndicator';
 import React, { useEffect, useRef, useState } from 'react'
 import useCanvas from '@/hooks/canvas';
 
+// örnek data
+const user = {
+  data: {
+    adress: "test adresi",
+    date: "22 / 06 / 2024",
+    total: "985$"
+  },
+  coordinates: {
+    total: {
+      x: 36,
+      y: 146
+    },
+    address: {
+      x: 302,
+      y: 152
+    },
+    date: {
+      x: 330,
+      y: 507
+    }
+  },
+}
+
 const Admin = () => {
   const [fileUrl, setFileUrl] = useState(null);
   const canvasRef = useRef();
@@ -136,11 +159,44 @@ const Admin = () => {
             type='button'
             className='px-4 py-2 transition-all duration-200 hover:opacity-75 w-auto h-auto rounded-md bg-gray-300 text-black'
             onClick={() => {
-              convertCanvasToDataURL();
               handleDownload();
             }}
           >
             Download Canvas
+          </button>
+          <button
+            type='button'
+            className='px-4 py-2 transition-all duration-200 hover:opacity-75 w-auto h-auto rounded-md bg-gray-300 text-black'
+            onClick={() => {
+              if (fileUrl) {
+                // canvası resetle
+                resetCanvas();
+
+                // Image oluştur
+                const img = new Image();
+                img.src = fileUrl;
+
+                img.onload = () => {
+                  const canvas = canvasRef.current
+                  const context = canvas.getContext('2d')
+
+                  // resimi yazdır - bir sorun nedeniyle hooktadki fonksiyonu kullanamayıorum çalışmıyor sadece bu kısımda
+                  context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                  // draw texts
+                  drawText(user.data.adress, user.coordinates.address.x, user.coordinates.address.y + 12)
+                  drawText(user.data.date, user.coordinates.date.x, user.coordinates.date.y + 12)
+                  drawText(user.data.total, user.coordinates.total.x, user.coordinates.total.y + 12)
+
+                  // textleri tüm koordinatlara çiz
+                  Object.entries(user).forEach(([inputKey, inputValue]) => {
+                    drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y + 12);
+                  });
+                };
+              }
+            }}
+          >
+            Random Generate
           </button>
         </form>}
       </div>
