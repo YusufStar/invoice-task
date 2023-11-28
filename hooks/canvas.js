@@ -14,8 +14,6 @@ const useCanvas = (canvasRef) => {
       date: null
     },
     activeInput: "",
-    width: 0,
-    height: 0
   });
   const [isCoordinateIndicatorVisible, setCoordinateIndicatorVisible] = useState(false);
 
@@ -38,21 +36,7 @@ const useCanvas = (canvasRef) => {
     context.arc(200, 200, 50, 0, 2 * Math.PI);
     context.fill();
   };
-
-  // resimi canvasa bastırma
-  const drawImage = (imageUrl) => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      context.drawImage(img, 0, 0, canvas.width, canvas.height);
-    };
-
-    return img
-  };
-
+  
   // verilen texti verilen koordinatlara yazdır
   const drawText = (text, x, y) => {
     const canvas = canvasRef.current;
@@ -61,23 +45,6 @@ const useCanvas = (canvasRef) => {
     context.font = "bold 12px Arial";
     context.fillText(text, x, y);
   };
-
-  
-    const drawShape = (shape, options) => {
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-    
-      context.beginPath();
-    
-      if (shape === 'square') {
-        context.rect(options.x, options.y, options.width, options.height);
-      } else if (shape === 'circle') {
-        context.arc(options.x, options.y, options.radius, 0, 2 * Math.PI);
-      }
-    
-      context.fillStyle = options.color || '#000';
-      context.fill();
-    };
 
     // canvasa tıklanıldığında
     const handleCanvasInteraction = (e) => {
@@ -97,7 +64,7 @@ const useCanvas = (canvasRef) => {
       }
     };
     
-    // canvası
+    // canvası dinle
     useEffect(() => {
       if (canvasRef.current) {
         const canvas = canvasRef.current;
@@ -111,7 +78,7 @@ const useCanvas = (canvasRef) => {
       };
     }, [canvasRef, data, data.activeInput]);
 
-  // canvası temizle tamamen!
+  // canvasa ait datayı temizle
   const clearData = () => {
     setData((prev) => ({
       ...prev,
@@ -163,7 +130,7 @@ const useCanvas = (canvasRef) => {
     document.body.removeChild(link);
   };
 
-  return { drawSquare, drawCircle, drawText, drawShape, data, setData, isCoordinateIndicatorVisible, setCoordinateIndicatorVisible, handleInputChange, clearData, handleDownload, resetCanvas };
+  return { drawSquare, drawCircle, drawText, data, setData, isCoordinateIndicatorVisible, setCoordinateIndicatorVisible, handleInputChange, clearData, handleDownload, resetCanvas };
 };
 
 export default useCanvas;

@@ -14,16 +14,16 @@ const user = {
   },
   coordinates: {
     total: {
+      x: 330,
+      y: 507
+    },
+    address: {
       x: 36,
       y: 146
     },
-    address: {
+    date: {
       x: 302,
       y: 152
-    },
-    date: {
-      x: 330,
-      y: 507
     }
   },
 }
@@ -31,7 +31,17 @@ const user = {
 const Admin = () => {
   const [fileUrl, setFileUrl] = useState(null);
   const canvasRef = useRef();
-  const { drawSquare, drawImage, drawText, data, setData, isCoordinateIndicatorVisible, setCoordinateIndicatorVisible, clearData, handleInputChange, handleDownload, resetCanvas } = useCanvas(canvasRef)
+  const {
+    drawSquare,
+    drawText,
+    data,
+    setData,
+    isCoordinateIndicatorVisible,
+    setCoordinateIndicatorVisible,
+    clearData,
+    handleInputChange,
+    handleDownload,
+    resetCanvas } = useCanvas(canvasRef)
 
   const handleImageUpload = (event) => {
     const input = event.target;
@@ -80,7 +90,7 @@ const Admin = () => {
 
   return (
     <div className='flex flex-col items-center bg-gray-950 w-screen h-screen gap-4 p-12 relative'>
-      {isCoordinateIndicatorVisible && <CoordinateIndicator onClick={(position) => setData((prev) => ({ ...prev, coordinates: { ...prev.coordinates, [prev.activeInput]: position } }))} />}
+      {isCoordinateIndicatorVisible && <CoordinateIndicator />}
       <span className='text-2xl font-semibold'>Draw text</span>
 
       <div className="w-full h-full flex gap-6 justify-center">
@@ -107,7 +117,7 @@ const Admin = () => {
 
               // textleri tüm koordinatlara çiz
               Object.entries(data.inputs).forEach(([inputKey, inputValue]) => {
-                drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y + 8);
+                drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y + 12);
               });
             };
           }
@@ -146,11 +156,7 @@ const Admin = () => {
           </button>
           <button
             type='button'
-            onClick={() => {
-              clearData()
-              resetCanvas()
-              drawImage(fileUrl)
-            }}
+            onClick={() => clearData()}
             className='px-4 py-2 transition-all duration-200 hover:opacity-75 w-auto h-auto bg-gray-300 rounded-md text-black'
           >
             Clear Canvas
@@ -158,9 +164,7 @@ const Admin = () => {
           <button
             type='button'
             className='px-4 py-2 transition-all duration-200 hover:opacity-75 w-auto h-auto rounded-md bg-gray-300 text-black'
-            onClick={() => {
-              handleDownload();
-            }}
+            onClick={() => handleDownload()}
           >
             Download Canvas
           </button>
@@ -187,11 +191,6 @@ const Admin = () => {
                   drawText(user.data.adress, user.coordinates.address.x, user.coordinates.address.y + 12)
                   drawText(user.data.date, user.coordinates.date.x, user.coordinates.date.y + 12)
                   drawText(user.data.total, user.coordinates.total.x, user.coordinates.total.y + 12)
-
-                  // textleri tüm koordinatlara çiz
-                  Object.entries(user).forEach(([inputKey, inputValue]) => {
-                    drawText(inputValue, data.coordinates?.[inputKey]?.x, data.coordinates?.[inputKey]?.y + 12);
-                  });
                 };
               }
             }}
