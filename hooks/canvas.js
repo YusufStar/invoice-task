@@ -1,136 +1,117 @@
 'use client'
-import { useEffect, useRef, useState } from 'react';
+import {useState, useEffect, useRef} from 'react';
 
-const useCanvas = (canvasRef) => {
-  const [data, setData] = useState({
-    inputs: {
-      address: "",
-      date: "",
-      total: ""
+const template = {
+    data: {
+        address: '',
+        date: '',
+        total: '',
     },
     coordinates: {
-      total: null,
-      address: null,
-      date: null
+        total: {},
+        address: {},
+        date: {},
     },
-    activeInput: "",
-  });
-  const [isCoordinateIndicatorVisible, setCoordinateIndicatorVisible] = useState(false);
-
-  // kare çizme fonksiyonu
-  const drawSquare = (x, y, width, height, color) => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    context.strokeStyle = color || '#000';
-    context.fillStyle = color || '#000'; // Set fill style
-    context.strokeRect(x, y, width, height);
-  };
-
-  // daire çizme
-  const drawCircle = () => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    context.beginPath();
-    context.arc(200, 200, 50, 0, 2 * Math.PI);
-    context.fill();
-  };
-  
-  // verilen texti verilen koordinatlara yazdır
-  const drawText = (text, x, y) => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    context.fillStyle = "#000";
-    context.font = "bold 12px Arial";
-    context.fillText(text, x, y);
-  };
-
-    // canvasa tıklanıldığında
-    const handleCanvasInteraction = (e) => {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left - 12;
-      const y = e.clientY - rect.top - 12;
-      setCoordinateIndicatorVisible(false);
-    
-      if (data.activeInput) {
-        setData((prev) => ({
-          ...prev,
-          coordinates: {
-            ...prev.coordinates,
-            [prev.activeInput]: { x, y },
-          },
-        }));
-      }
-    };
-    
-    // canvası dinle
-    useEffect(() => {
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-        canvas.addEventListener('click', handleCanvasInteraction);
-      }
-    
-      return () => {
-        if (canvasRef.current) {
-          canvasRef.current.removeEventListener('click', handleCanvasInteraction);
-        }
-      };
-    }, [canvasRef, data, data.activeInput]);
-
-  // canvasa ait datayı temizle
-  const clearData = () => {
-    setData((prev) => ({
-      ...prev,
-      coordinates: {
-        total: null,
-        address: null,
-        date: null
-      },
-      inputs: {
-        address: "",
-        date: "",
-        total: ""
-      }
-    }));
-  };
-
-  const resetCanvas = () => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  // inputlara girdi girildiğinde datayı değiştir
-  const handleInputChange = (key, value) => {
-    setData((prev) => ({
-      ...prev,
-      inputs: {
-        ...prev.inputs,
-        [key]: value
-      }
-    }));
-  };
-
-  // canvası dataya çevir
-  const convertCanvasToDataURL = () => {
-    const canvas = canvasRef.current;
-    const dataURL = canvas.toDataURL("image/png");
-    return dataURL
-  };
-
-  // çevrilen datayı indir
-  const handleDownload = () => {
-    const url = convertCanvasToDataURL()
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "invoice.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  return { drawSquare, drawCircle, drawText, data, setData, isCoordinateIndicatorVisible, setCoordinateIndicatorVisible, handleInputChange, clearData, handleDownload, resetCanvas };
 };
 
-export default useCanvas;
+const useCanvasDrawing = () => {
+    const canvasRef = useRef(null);
+    const [debugMode, setDebugMode] = useState(false);
+    const [activeInput, setActiveInput] = useState('');
+    const [dragging, setDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({x: 0, y: 0});
+    const [dragEnd, setDragEnd] = useState({x: 0, y: 0});
+    const [data, setData] = useState(template)
+
+    const handleMouseDown = (e) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        setDragStart({x, y});
+        setDragging(true);
+    };
+
+    const handleMouseMove = (e) => {
+        if (dragging) {
+            const rect = canvasRef.current.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            setDragEnd({x, y});
+        }
+    };
+
+    const handleMouseUp = () => {
+        if (dragging) {
+            setDragging(false);
+        }
+    };
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            canvas.removeEventListener('mousedown', handleMouseDown);
+            canvas.removeEventListener('mousemove', handleMouseMove);
+            canvas.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [dragging, activeInput]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+
+        // Draw active selection container
+        if (dragging || activeInput !== null && activeInput !== undefined && activeInput !== "") {
+            setData(prev => ({
+                ...prev,
+                coordinates: {
+                    ...prev.coordinates,
+                    [activeInput]: {
+                        x: dragStart.x,
+                        y: dragStart.y,
+                        w: dragEnd.x - dragStart.x,
+                        h: dragEnd.y - dragStart.y
+                    }
+                }
+            }))
+        }
+    }, [dragging, dragStart, dragEnd]);
+
+    const drawImage = (src) => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+
+        const image = new Image();
+        image.src = src;
+
+            image.onload = () => {
+            const maxHeight = 700;
+            const scaleFactor = maxHeight / image.height;
+            const scaledWidth = image.width * scaleFactor;
+
+            canvas.width = scaledWidth;
+            canvas.height = maxHeight;
+
+            ctx.drawImage(image, 0, 0, scaledWidth, maxHeight);
+        };
+    };
+
+    return {
+        canvasRef,
+        setDebugMode,
+        setActiveInput,
+        activeInput,
+        debugMode,
+        data,
+        setData,
+        dragging,
+        drawImage
+    };
+};
+
+export default useCanvasDrawing;
